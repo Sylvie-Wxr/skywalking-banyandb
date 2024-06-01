@@ -43,9 +43,21 @@ func (p LabelPairs) Merge(other LabelPairs) LabelPairs {
 
 // Provider is the interface for a metrics provider, which is responsible for creating metrics.
 type Provider interface {
-	Counter(name string, labelNames ...string) Counter
-	Gauge(name string, labelNames ...string) Gauge
-	Histogram(name string, buckets Buckets, labelNames ...string) Histogram
+	RegisterCounter(name string, labels ...string)
+	RegisterGauge(name string, labelNames ...string)
+	RegisterHistogram(name string, buckets Buckets, labelNames ...string)
+	GetCounter(name string, labelNames ...string) Counter
+	GetGauge(name string, labelNames ...string) Gauge
+	GetHistogram(name string, buckets Buckets, labelNames ...string) Histogram
+}
+
+// GenerateKey is a helper function to generate a unique key for the Provider registry.
+func GenerateKey(name string, labelNames []string) string {
+	key := name
+	for _, label := range labelNames {
+		key += "_" + label
+	}
+	return key
 }
 
 // Scope is a namespace wrapper for metrics.
