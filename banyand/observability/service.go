@@ -105,7 +105,7 @@ func (p *metricService) PreRun(ctx context.Context) error {
 			if err != nil {
 				p.l.Warn().Err(err).Msg("Failed to create native observability group")
 			}
-			MetricsCollector.RegisterProvider(newNativeMeterProvider(SystemScope))
+			MetricsCollector.RegisterProvider(newNativeMeterProvider(SystemScope, p.metadata))
 		}
 	}
 	return nil

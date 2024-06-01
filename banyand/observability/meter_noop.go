@@ -28,8 +28,8 @@ import (
 )
 
 // NewMeterProvider returns a meter.Provider based on the given scope.
-func newNativeMeterProvider(_ meter.Scope) meter.Provider {
-	return meter.NoopProvider{}
+func newNativeMeterProvider(_ meter.Scope, metadata metadata.Repo) meter.Provider {
+	return meter.NewProvider(metadata)
 }
 
 // MetricsServerInterceptor returns a grpc.UnaryServerInterceptor and a grpc.StreamServerInterceptor.
@@ -37,7 +37,7 @@ func emptyMetricsServerInterceptor() (grpc.UnaryServerInterceptor, grpc.StreamSe
 	return nil, nil
 }
 
-func createNativeObservabilityGroup(ctx context.Context, e metadata.Repo) error {
+func createNativeObservabilityGroup(ctx context.Context, metadata metadata.Repo) error {
 	g := &commonv1.Group{
 		Metadata: &commonv1.Metadata{
 			Name: "_monitoring",
@@ -55,5 +55,5 @@ func createNativeObservabilityGroup(ctx context.Context, e metadata.Repo) error 
 			},
 		},
 	}
-	return e.GroupRegistry().CreateGroup(ctx, g)
+	return metadata.GroupRegistry().CreateGroup(ctx, g)
 }
