@@ -25,11 +25,12 @@ import (
 	commonv1 "github.com/apache/skywalking-banyandb/api/proto/banyandb/common/v1"
 	"github.com/apache/skywalking-banyandb/banyand/metadata"
 	"github.com/apache/skywalking-banyandb/pkg/meter"
+	"github.com/apache/skywalking-banyandb/pkg/meter/native"
 )
 
 // NewMeterProvider returns a meter.Provider based on the given scope.
 func newNativeMeterProvider(_ meter.Scope, metadata metadata.Repo) meter.Provider {
-	return meter.NewProvider(metadata)
+	return native.NewProvider(metadata)
 }
 
 // MetricsServerInterceptor returns a grpc.UnaryServerInterceptor and a grpc.StreamServerInterceptor.
@@ -40,7 +41,7 @@ func emptyMetricsServerInterceptor() (grpc.UnaryServerInterceptor, grpc.StreamSe
 func createNativeObservabilityGroup(ctx context.Context, metadata metadata.Repo) error {
 	g := &commonv1.Group{
 		Metadata: &commonv1.Metadata{
-			Name: "_monitoring",
+			Name: native.NativeObservabilityGroupName,
 		},
 		Catalog: commonv1.Catalog_CATALOG_MEASURE,
 		ResourceOpts: &commonv1.ResourceOpts{
