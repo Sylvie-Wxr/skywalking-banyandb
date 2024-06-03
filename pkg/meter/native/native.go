@@ -45,10 +45,12 @@ func (noopInstrument) Delete(_ ...string) bool        { return false }
 
 type provider struct {
 	metadata   metadata.Repo
+	scope      meter.Scope
 }
 
-func NewProvider(metadata metadata.Repo) meter.Provider {
+func NewProvider(scope meter.Scope, metadata metadata.Repo) meter.Provider {
 	return &provider{
+		scope: scope,
 		metadata: metadata,
 	}
 }

@@ -29,8 +29,8 @@ import (
 )
 
 // NewMeterProvider returns a meter.Provider based on the given scope.
-func newNativeMeterProvider(_ meter.Scope, metadata metadata.Repo) meter.Provider {
-	return native.NewProvider(metadata)
+func newNativeMeterProvider(scope meter.Scope, metadata metadata.Repo) meter.Provider {
+	return native.NewProvider(scope, metadata)
 }
 
 // MetricsServerInterceptor returns a grpc.UnaryServerInterceptor and a grpc.StreamServerInterceptor.
