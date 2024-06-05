@@ -43,7 +43,12 @@ var (
 	// RootScope is the root scope for all metrics.
 	RootScope = meter.NewHierarchicalScope("banyandb", "_")
 	// SystemScope is the system scope for all metrics.
-	SystemScope = RootScope.SubScope("system")
+	SystemScope     = RootScope.SubScope("system")
+	cpuStateGauge   meter.Gauge
+	cpuNumGauge     meter.Gauge
+	memorySateGauge meter.Gauge
+	netStateGauge   meter.Gauge
+	initMetricsOnce sync.Once
 )
 
 func init() {
@@ -59,15 +64,16 @@ func registerMetrics(provider meter.Provider) {
 	provider.RegisterGauge("net_state", "kind", "name")
 }
 
-func collectCPU(provider meter.Provider) {
-	cpuStateGauge := provider.GetGauge("cpu_state", "kind")
-	if cpuStateGauge == nil {
-		log.Error().Msg("cpuStateGauge is not registered")
-	}
-	cpuNumGauge := provider.GetGauge("cpu_num")
-	if cpuNumGauge == nil {
-		log.Error().Msg("cpuNumGauge is not registered")
-	}
+func initMetrics(providers []meter.Provider) {
+	initMetricsOnce.Do(func() {
+		cpuStateGauge = NewGauge(providers, "cpu_state", "kind")
+		cpuNumGauge = NewGauge(providers, "cpu_num")
+		memorySateGauge = NewGauge(providers, "memory_state", "kind")
+		netStateGauge = NewGauge(providers, "net_state", "kind", "name")
+	})
+}
+
+func collectCPU() {
 	once4CpuCount.Do(func() {
 		if c, err := cpuCountsFunc(false); err != nil {
 			log.Error().Err(err).Msg("cannot get cpu count")
@@ -96,11 +102,7 @@ func collectCPU(provider meter.Provider) {
 	cpuStateGauge.Set(allStat.Steal/total, "steal")
 }
 
-func collectMemory(provider meter.Provider) {
-	memorySateGauge := provider.GetGauge("memory_state", "kind")
-	if memorySateGauge == nil {
-		log.Error().Msg("memorySateGauge is not registered")
-	}
+func collectMemory() {
 	m, err := mem.VirtualMemory()
 	if err != nil {
 		log.Error().Err(err).Msg("cannot get memory stat")
@@ -109,11 +111,7 @@ func collectMemory(provider meter.Provider) {
 	memorySateGauge.Set(float64(m.Used)/float64(m.Total), "used")
 }
 
-func collectNet(provider meter.Provider) {
-	netStateGauge := provider.GetGauge("net_state", "kind", "name")
-	if netStateGauge == nil {
-		log.Error().Msg("netStateGauge is not registered")
-	}
+func collectNet() {
 	stats, err := getNetStat(context.Background())
 	if err != nil {
 		log.Error().Err(err).Msg("cannot get net stat")
